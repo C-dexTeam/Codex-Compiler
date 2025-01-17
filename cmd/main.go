@@ -8,7 +8,7 @@ import (
 // @title API Service
 // @description API Service for Codex-Compiler
 // @host localhost
-// @BasePath /api/v1
+// @BasePath /compiler-api/v1
 // @securityDefinitions.apikey ApiKeyAuth
 // @in cookie
 // @name session_id

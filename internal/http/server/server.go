@@ -18,7 +18,7 @@ func NewServer(cfg *config.Config, errHandler ...func(c *fiber.Ctx, err error) e
 	fiberConfig := fiber.Config{
 		ReadTimeout:  cfg.HTTP.ReadTimeout,
 		WriteTimeout: cfg.HTTP.WriteTimeout,
-		ServerHeader: "Backend github.com/C-dexTeam/codex-compiler " + config.Version,
+		ServerHeader: "Backend 	Codex Compiler " + config.Version,
 		ProxyHeader:  cfg.HTTP.ProxyHeader,
 	}
 	if len(errHandler) > 0 {
