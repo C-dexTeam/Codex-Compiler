@@ -30,7 +30,7 @@ func (h *Handler) Init(devMode bool, middlewares ...func(*fiber.Ctx) error) *fib
 
 	if devMode {
 		docs.SwaggerInfo.Version = config.Version
-		app.Get("/api/dev/*", swagger.New(swagger.Config{
+		app.Get("/compiler-api/dev/*", swagger.New(swagger.Config{
 			Title:                "Codex-Compiler Backend",
 			TryItOutEnabled:      true,
 			PersistAuthorization: true,
