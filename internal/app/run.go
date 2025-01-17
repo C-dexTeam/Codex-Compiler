@@ -19,8 +19,8 @@ import (
 func Run(cfg *config.Config) {
 	// Redis Client Başlat
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
+		Addr:     "redis:6379",
+		Password: "secret",
 		DB:       0,
 	})
 
