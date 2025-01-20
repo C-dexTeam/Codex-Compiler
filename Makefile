@@ -2,7 +2,7 @@
 
 dev.swagger.init:
 	@echo "Generating swagger..."
-	@swag init  --parseVendor  -d . -g ./cmd/main.go 
+	@~/go/bin/swag init  --parseVendor  -d . -g ./cmd/main.go 
 
 help:
 	@echo "Usage: make <target>"
