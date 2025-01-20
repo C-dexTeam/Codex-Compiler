@@ -37,7 +37,7 @@ func (h *Handler) Init(devMode bool, middlewares ...func(*fiber.Ctx) error) *fib
 		}))
 	}
 
-	root := app.Group("/api")
+	root := app.Group("/compiler-api")
 	sessionStore := sessionStore.NewSessionStore()
 	dtoManager := dto.CreateNewDTOManager()
 

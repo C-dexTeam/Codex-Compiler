@@ -1,10 +1,37 @@
 basePath: /compiler-api/v1
+definitions:
+  response.BaseResponse:
+    properties:
+      data: {}
+      dataCount:
+        type: integer
+      errors: {}
+      message:
+        type: string
+      statusCode:
+        type: integer
+    type: object
 host: localhost
 info:
   contact: {}
   description: API Service for Codex-Compiler
   title: API Service
-paths: {}
+paths:
+  /private/run:
+    get:
+      consumes:
+      - application/json
+      description: Runs user codes.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BaseResponse'
+      summary: Runs codes.
+      tags:
+      - Run
 securityDefinitions:
   ApiKeyAuth:
     in: cookie
