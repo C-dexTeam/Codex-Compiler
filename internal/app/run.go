@@ -13,26 +13,21 @@ import (
 	"github.com/C-dexTeam/codex-compiler/internal/http/middlewares"
 	"github.com/C-dexTeam/codex-compiler/internal/http/response"
 	"github.com/C-dexTeam/codex-compiler/internal/http/server"
-	"github.com/redis/go-redis/v9"
+	"github.com/C-dexTeam/codex-compiler/internal/services"
+	validatorService "github.com/C-dexTeam/codex-compiler/pkg/validator_service"
 )
 
 func Run(cfg *config.Config) {
-	// Redis Client Başlat
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		Password: "secret",
-		DB:       0,
-	})
+	// Utilities Initialize
+	validatorService := validatorService.NewValidatorService()
 
-	// Redis Connection Test
-	err := redisClient.Ping(context.Background()).Err()
-	if err != nil {
-		log.Fatalf("Error connecting to Redis: %v", err)
-	}
-	fmt.Println("Redis connection established successfully.")
+	// Service Initialize
+	allServices := services.CreateNewServices(
+		validatorService,
+	)
 
 	// Handler Initialize
-	handlers := http.NewHandler(redisClient)
+	handlers := http.NewHandler(allServices)
 
 	// Fiber İnitialize
 	fiberServer := server.NewServer(cfg, response.ResponseHandler)
