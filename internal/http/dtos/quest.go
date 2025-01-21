@@ -13,6 +13,7 @@ type QuestDTO struct {
 }
 
 type QuestChapter struct {
+	ChapterID   string `json:"id"`
 	UserCode    string `json:"userCode"`
 	FuncName    string `json:"funcname"`
 	FrontendTmp string `json:"frontendTmp"`
@@ -21,11 +22,11 @@ type QuestChapter struct {
 }
 
 type QuestProgrammingLang struct {
-	Name          string `json:"name"`
-	FileExtention string `json:"fileExtention"`
+	Name string `json:"name"`
 }
 
 type QuestTest struct {
+	TestID string `json:"id"`
 	Input  string `json:"input"`
 	Output string `json:"output"`
 }

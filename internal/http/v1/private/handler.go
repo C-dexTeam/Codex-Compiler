@@ -66,7 +66,7 @@ func (h *PrivateHandler) authMiddleware(c *fiber.Ctx) error {
 	}
 
 	// Prepare the request for verification, passing session ID as a query parameter
-	verifyURL := "http://api:8080/api/v1/private/user/profile"
+	verifyURL := "http://nginx/api/v1/private/user/profile"
 	reqURL, err := url.Parse(verifyURL)
 	if err != nil {
 		return serviceErrors.NewServiceErrorWithMessage(500, "Error parsing verify URL")
