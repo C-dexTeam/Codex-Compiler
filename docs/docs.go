@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/private/run": {
-            "get": {
+            "post": {
                 "description": "Runs user codes.",
                 "consumes": [
                     "application/json"
@@ -28,6 +28,17 @@ const docTemplate = `{
                     "Run"
                 ],
                 "summary": "Runs codes.",
+                "parameters": [
+                    {
+                        "description": "Chapter Quest",
+                        "name": "quest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QuestDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -40,6 +51,65 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.QuestChapter": {
+            "type": "object",
+            "properties": {
+                "checkTmp": {
+                    "type": "string"
+                },
+                "dockerTmp": {
+                    "type": "string"
+                },
+                "frontendTmp": {
+                    "type": "string"
+                },
+                "funcname": {
+                    "type": "string"
+                },
+                "userCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QuestDTO": {
+            "type": "object",
+            "properties": {
+                "chapter": {
+                    "$ref": "#/definitions/dto.QuestChapter"
+                },
+                "programmingLanguage": {
+                    "$ref": "#/definitions/dto.QuestProgrammingLang"
+                },
+                "tests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QuestTest"
+                    }
+                }
+            }
+        },
+        "dto.QuestProgrammingLang": {
+            "type": "object",
+            "properties": {
+                "fileExtention": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QuestTest": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "type": "string"
+                },
+                "output": {
+                    "type": "string"
+                }
+            }
+        },
         "response.BaseResponse": {
             "type": "object",
             "properties": {

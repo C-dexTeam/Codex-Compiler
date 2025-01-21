@@ -9,7 +9,7 @@ import (
 )
 
 func (h *PrivateHandler) initUserRoutes(root fiber.Router) {
-	root.Get("/run", h.Run)
+	root.Post("/run", h.Run)
 }
 
 // @Tags Run
@@ -19,7 +19,7 @@ func (h *PrivateHandler) initUserRoutes(root fiber.Router) {
 // @Produce json
 // @Param quest body dto.QuestDTO true "Chapter Quest"
 // @Success 200 {object} response.BaseResponse{}
-// @Router /private/run [get]
+// @Router /private/run [post]
 func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	var quest dto.QuestDTO
 	if err := c.BodyParser(&quest); err != nil {
@@ -29,7 +29,7 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 		return err
 	}
 
-	fmt.Println("Selam")
+	fmt.Println("Compiler Quest:", quest)
 
 	return response.Response(200, "Code Runnded", "hi")
 }
