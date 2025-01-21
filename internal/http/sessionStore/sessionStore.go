@@ -10,7 +10,7 @@ import (
 )
 
 type SessionData struct {
-	UserID        string
+	UserID        string `json:"userAuthID"`
 	UserProfileID string
 	PublicKey     string
 	RoleID        string

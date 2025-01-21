@@ -2,10 +2,12 @@ package services
 
 type IService interface {
 	UtilService() IUtilService
+	RunnerService() *runnerService
 }
 
 type Services struct {
-	utilService IUtilService
+	utilService   IUtilService
+	runnerService *runnerService
 }
 
 func CreateNewServices(
@@ -13,14 +15,20 @@ func CreateNewServices(
 
 ) *Services {
 	utilsService := newUtilService(validatorService)
+	runnerService := NewRunnerService(utilsService)
 
 	return &Services{
-		utilService: utilsService,
+		utilService:   utilsService,
+		runnerService: runnerService,
 	}
 }
 
 func (s *Services) UtilService() IUtilService {
 	return s.utilService
+}
+
+func (s *Services) RunnerService() *runnerService {
+	return s.runnerService
 }
 
 // ------------------------------------------------------
