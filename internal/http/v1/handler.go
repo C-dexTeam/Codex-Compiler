@@ -4,20 +4,21 @@ import (
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/internal/http/response"
 	"github.com/C-dexTeam/codex-compiler/internal/http/v1/private"
-	"github.com/redis/go-redis/v9"
+	"github.com/C-dexTeam/codex-compiler/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 type V1Handler struct {
-	redis      *redis.Client
 	dtoManager dto.IDTOManager
+	services   *services.Services
 }
 
-func NewV1Handler(dtoManager dto.IDTOManager, redis *redis.Client) *V1Handler {
+func NewV1Handler(dtoManager dto.IDTOManager, services *services.Services) *V1Handler {
 	return &V1Handler{
 		dtoManager: dtoManager,
+		services:   services,
 	}
 }
 
@@ -28,5 +29,5 @@ func (h *V1Handler) Init(router fiber.Router, sessionStore *session.Store) {
 	})
 
 	// Init Fiber Session Store
-	private.NewPrivateHandler(sessionStore, h.dtoManager, h.redis).Init(root)
+	private.NewPrivateHandler(sessionStore, h.dtoManager, h.services).Init(root)
 }

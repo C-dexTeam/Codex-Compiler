@@ -6,19 +6,19 @@ import (
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/internal/http/sessionStore"
 	v1 "github.com/C-dexTeam/codex-compiler/internal/http/v1"
-	"github.com/redis/go-redis/v9"
+	"github.com/C-dexTeam/codex-compiler/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 )
 
 type Handler struct {
-	redis *redis.Client
+	services *services.Services
 }
 
-func NewHandler(redis *redis.Client) *Handler {
+func NewHandler(services *services.Services) *Handler {
 	return &Handler{
-		redis: redis,
+		services: services,
 	}
 }
 
@@ -42,7 +42,7 @@ func (h *Handler) Init(devMode bool, middlewares ...func(*fiber.Ctx) error) *fib
 	dtoManager := dto.CreateNewDTOManager()
 
 	// init routes
-	v1.NewV1Handler(dtoManager, h.redis).Init(root, sessionStore)
+	v1.NewV1Handler(dtoManager, h.services).Init(root, sessionStore)
 
 	return app
 }

@@ -11,29 +11,29 @@ import (
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/internal/http/response"
 	"github.com/C-dexTeam/codex-compiler/internal/http/sessionStore"
+	"github.com/C-dexTeam/codex-compiler/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/redis/go-redis/v9"
 )
 
 // PrivateHandler struct
 type PrivateHandler struct {
 	sess_store *session.Store
+	services   *services.Services
 	dtoManager dto.IDTOManager
-	redis      *redis.Client
 }
 
 // NewPrivateHandler creates a new instance of PrivateHandler
 func NewPrivateHandler(
 	sessStore *session.Store,
 	dtoManager dto.IDTOManager,
-	redis *redis.Client,
+	services *services.Services,
 ) *PrivateHandler {
 	return &PrivateHandler{
 		sess_store: sessStore,
 		dtoManager: dtoManager,
-		redis:      redis,
+		services:   services,
 	}
 }
 
