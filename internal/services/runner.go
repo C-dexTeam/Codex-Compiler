@@ -32,7 +32,7 @@ func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter 
 	// For now we are checking the outputs of the code. Not need checks_template
 	// checks := s.createChecks(chapter.CheckTmp, tests)
 	// chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
-	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$usercode$", chapter.UserCode, -1)
+	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$code$", chapter.UserCode, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$funcname$", chapter.FuncName, -1)
 
 	codePath := s.generateUserCodePath(userAuthID, chapter.ChapterID, defaultFileName)
@@ -152,66 +152,6 @@ func (s *runnerService) createTestOutput(test dto.QuestTest) string {
 
 	return output
 }
-
-// func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string {
-// 	var checks strings.Builder
-
-// 	for i, test := range tests {
-// 		tmp := check
-// 		tmp = strings.Replace(tmp, "$rnd$", fmt.Sprintf("%v", i), -1)
-
-// 		// Split input and output by "|"
-// 		inputs := strings.Split(test.Input, "|")
-// 		outputs := strings.Split(test.Output, "|")
-
-// 		var inputValues []string
-// 		for _, in := range inputs {
-// 			in = strings.TrimSpace(in)
-// 			// Identify type of input element
-// 			if typechecker.IsString(in) {
-// 				inputValues = append(inputValues, in) // Already string so we can append it normaly
-// 			} else if typechecker.IsBool(in) {
-// 				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseBool(in)))
-// 			} else if typechecker.IsNumber(in) {
-// 				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseNumber(in)))
-// 			} else {
-// 				inputValues = append(inputValues, fmt.Sprintf("%v", in))
-// 			}
-// 		}
-// 		tmp = strings.Replace(tmp, "$input$", strings.Join(inputValues, ", "), -1)
-
-// 		// Handle output replacement
-// 		var outputValues []string
-// 		var fails []string
-// 		for _, out := range outputs {
-// 			out = strings.TrimSpace(out)
-// 			// Identify type of output element
-// 			if typechecker.IsString(out) {
-// 				outputValues = append(outputValues, out)
-// 				fails = append(fails, fmt.Sprintf("%v", out))
-// 			} else if typechecker.IsBool(out) {
-// 				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseBool(out)))
-// 				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseBool(out)))
-// 			} else if typechecker.IsNumber(out) {
-// 				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
-// 				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
-// 			} else {
-// 				outputValues = append(outputValues, fmt.Sprintf("%v", out))
-// 				fails = append(fails, fmt.Sprintf("%v", out))
-// 			}
-// 		}
-// 		tmp = strings.Replace(tmp, "$output$", strings.Join(outputValues, ", "), -1)
-
-// 		// Handle $out$ if exists
-// 		if strings.Contains(check, "$out$") {
-// 			tmp = strings.Replace(tmp, "$out$", strings.Join(fails, ", "), -1)
-// 		}
-
-// 		checks.WriteString(tmp + "\n")
-// 	}
-
-// 	return checks.String()
-// }
 
 func (s *runnerService) generateUserCodePath(userID, chapterID, defaultName string) string {
 	extention := strings.Split(defaultName, ".")[1]
