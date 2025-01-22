@@ -43,6 +43,7 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	}
 
 	// TODO: Build The Code
+	h.services.RunnerService().BuildCode(lang.Build)
 
 	// TODO: Run Code
 	h.services.RunnerService().RunCode(quest.ProgrammingLanguageDTO.Name, quest.Tests)

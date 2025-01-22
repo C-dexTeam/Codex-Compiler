@@ -25,4 +25,4 @@ go.work.sum
 tmp/
 storage/
 storage/postgres_data/
-usercodes/
+users/
