@@ -11,4 +11,5 @@ const (
 const (
 	ErrUploadingUserCode    = "ERROR_WHILE_UPLOADING_USER_CODE"
 	ErrCreateDirectoryError = "ERROR_CREATE_DIRECTORY"
+	ErrCodeBuild            = "ERROR_CODE_BUILD"
 )

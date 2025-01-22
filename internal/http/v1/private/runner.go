@@ -2,6 +2,7 @@ package private
 
 import (
 	"github.com/C-dexTeam/codex-compiler/internal/domains"
+	serviceErrors "github.com/C-dexTeam/codex-compiler/internal/errors"
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/internal/http/response"
 	"github.com/C-dexTeam/codex-compiler/internal/http/sessionStore"
@@ -42,12 +43,15 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 		return err
 	}
 
-	// TODO: Build The Code
-	h.services.RunnerService().BuildCode(lang.Build, userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName)
+	// Build The Code for Syntax Errors
+	buildLog := h.services.RunnerService().BuildCode(lang.Build, userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName)
+	if buildLog.Error() != "" {
+		return response.Response(400, serviceErrors.ErrCodeBuild, buildLog)
+	}
 
-	// TODO: Run Code
-	h.services.RunnerService().RunCode(quest.ProgrammingLanguageDTO.Name, quest.Tests)
+	// Run Code
+	codeLog := h.services.RunnerService().RunCode(userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName, lang.Run, quest.Tests)
 
 	// fmt.Println("Compiler Quest:", quest)
-	return response.Response(200, "Code Runnded", "hi")
+	return response.Response(200, "Code Runnded", codeLog)
 }
