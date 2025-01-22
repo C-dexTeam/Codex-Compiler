@@ -3,8 +3,10 @@ package services
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
+	"github.com/C-dexTeam/codex-compiler/internal/domains"
 	serviceErrors "github.com/C-dexTeam/codex-compiler/internal/errors"
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/pkg/file"
@@ -13,16 +15,21 @@ import (
 
 type runnerService struct {
 	utilService IUtilService
+	mainDir     string
+	userCodeDir string
+	binaryDir   string
 }
 
 func NewRunnerService(utilService IUtilService) *runnerService {
 	return &runnerService{
 		utilService: utilService,
+		mainDir:     "users",
+		userCodeDir: "users/usercode",
+		binaryDir:   "users/binaries",
 	}
 }
 
 func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter dto.QuestChapter, tests []dto.QuestTest) error {
-	fmt.Println("CreateFiles Runned")
 	checks := s.createChecks(chapter.CheckTmp, tests)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$res$", fmt.Sprint(len(tests)-1), -1)
@@ -41,10 +48,28 @@ func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter 
 }
 
 func (s *runnerService) CreateDirectories(userAuthID string) error {
-	mainDir := "usercodes"
-
-	if err := file.CheckDir(mainDir); err != nil {
-		if err := file.CreateDir(mainDir); err != nil {
+	if err := file.CheckDir(s.mainDir); err != nil {
+		if err := file.CreateDir(s.mainDir); err != nil {
+			return serviceErrors.NewServiceErrorWithMessage(serviceErrors.StatusInternalServerError, serviceErrors.ErrCreateDirectoryError)
+		}
+	}
+	if err := file.CheckDir(s.userCodeDir); err != nil {
+		if err := file.CreateDir(s.userCodeDir); err != nil {
+			return serviceErrors.NewServiceErrorWithMessage(serviceErrors.StatusInternalServerError, serviceErrors.ErrCreateDirectoryError)
+		}
+	}
+	if err := file.CheckDir(s.userCodeDir + "/" + userAuthID); err != nil {
+		if err := file.CreateDir(s.userCodeDir + "/" + userAuthID); err != nil {
+			return serviceErrors.NewServiceErrorWithMessage(serviceErrors.StatusInternalServerError, serviceErrors.ErrCreateDirectoryError)
+		}
+	}
+	if err := file.CheckDir(s.binaryDir); err != nil {
+		if err := file.CreateDir(s.binaryDir); err != nil {
+			return serviceErrors.NewServiceErrorWithMessage(serviceErrors.StatusInternalServerError, serviceErrors.ErrCreateDirectoryError)
+		}
+	}
+	if err := file.CheckDir(s.binaryDir + "/" + userAuthID); err != nil {
+		if err := file.CreateDir(s.binaryDir + "/" + userAuthID); err != nil {
 			return serviceErrors.NewServiceErrorWithMessage(serviceErrors.StatusInternalServerError, serviceErrors.ErrCreateDirectoryError)
 		}
 	}
@@ -52,8 +77,24 @@ func (s *runnerService) CreateDirectories(userAuthID string) error {
 	return nil
 }
 
+func (s *runnerService) BuildCode(build, userAuthID, ChapterID, defaultFileName string) error {
+	fmt.Println("Building Code")
+
+	binaryPath := s.generateUserBinaryPath(userAuthID, ChapterID)
+	userCodePath := s.generateUserCodePath(userAuthID, ChapterID, defaultFileName)
+	buildCode := fmt.Sprintf(build, binaryPath, userCodePath)
+
+	cmd := exec.Command("sh", "-c", buildCode)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return domains.NewCodeResponse(string(output), err, false)
+	}
+
+	return domains.NewCodeResponse("", nil, true)
+}
+
 func (s *runnerService) RunCode(name string, tests []dto.QuestTest) {
-	fmt.Println("RunCode Runned")
+	// fmt.Println("RunCode Runned")
 }
 
 func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string {
@@ -118,9 +159,15 @@ func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string
 
 func (s *runnerService) generateUserCodePath(userID, chapterID, defaultName string) string {
 	extention := strings.Split(defaultName, ".")[1]
-	mainDir := "usercodes"
-	userDir := mainDir + "/" + userID
+
+	userDir := s.userCodeDir + "/" + userID
 	fileName := fmt.Sprintf("%v.%v", chapterID, extention)
 
-	return userDir + fileName
+	return userDir + "/" + fileName
+}
+
+func (s *runnerService) generateUserBinaryPath(userID, chapterID string) string {
+	userDir := s.binaryDir + "/" + userID
+
+	return userDir
 }

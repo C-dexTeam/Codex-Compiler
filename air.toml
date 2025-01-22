@@ -7,7 +7,7 @@ tmp_dir = "tmp"
   bin = "./tmp/main"
   cmd = "VER=$(cat ./VERSION); go build -ldflags \"-X 'github.com/C-dexTeam/codex-compiler/internal/config.Version=$VER' \" -o ./tmp/main  ./cmd/main.go"
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "db_data", "usercodes"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "db_data", "users", "usercodes", "binaries"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false

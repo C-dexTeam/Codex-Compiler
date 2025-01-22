@@ -10,6 +10,27 @@ type Language struct {
 	DefaultName string
 }
 
+type CodeResponse struct {
+	Correct    bool
+	BuildError string
+	Err        error
+}
+
+func NewCodeResponse(buildError string, err error, correct bool) error {
+	return &CodeResponse{
+		Correct:    correct,
+		BuildError: buildError,
+		Err:        err,
+	}
+}
+
+func (e *CodeResponse) Error() string {
+	if e.Err != nil {
+		return e.Err.Error()
+	}
+	return ""
+}
+
 func newLanguage(name, run, build, defaultName string) Language {
 	return Language{
 		Name:        name,
@@ -25,7 +46,7 @@ func Languages() []Language {
 		newLanguage(
 			"Go",
 			"go run main.go",     // Go derlemeden çalıştırma
-			"go build -o main .", // Go derleme komutu
+			"go build -o %v %v ", // Go derleme komutu
 			"main.go",            // Varsayılan dosya adı
 		),
 
