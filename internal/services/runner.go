@@ -80,7 +80,7 @@ func (s *runnerService) CreateDirectories(userAuthID string) error {
 func (s *runnerService) BuildCode(build, userAuthID, ChapterID, defaultFileName string) error {
 	fmt.Println("Building Code")
 
-	binaryPath := s.generateUserBinaryPath(userAuthID, ChapterID)
+	binaryPath := s.generateUserBinaryPath(userAuthID)
 	userCodePath := s.generateUserCodePath(userAuthID, ChapterID, defaultFileName)
 	buildCode := fmt.Sprintf(build, binaryPath, userCodePath)
 
@@ -166,7 +166,7 @@ func (s *runnerService) generateUserCodePath(userID, chapterID, defaultName stri
 	return userDir + "/" + fileName
 }
 
-func (s *runnerService) generateUserBinaryPath(userID, chapterID string) string {
+func (s *runnerService) generateUserBinaryPath(userID string) string {
 	userDir := s.binaryDir + "/" + userID
 
 	return userDir
