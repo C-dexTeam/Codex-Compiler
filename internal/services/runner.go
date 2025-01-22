@@ -10,7 +10,6 @@ import (
 	serviceErrors "github.com/C-dexTeam/codex-compiler/internal/errors"
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/pkg/file"
-	typechecker "github.com/C-dexTeam/codex-compiler/pkg/type_checker"
 )
 
 type runnerService struct {
@@ -30,12 +29,11 @@ func NewRunnerService(utilService IUtilService) *runnerService {
 }
 
 func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter dto.QuestChapter, tests []dto.QuestTest) error {
-	checks := s.createChecks(chapter.CheckTmp, tests)
-	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
-	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$res$", fmt.Sprint(len(tests)-1), -1)
+	// For now we are checking the outputs of the code. Not need checks_template
+	// checks := s.createChecks(chapter.CheckTmp, tests)
+	// chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$usercode$", chapter.UserCode, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$funcname$", chapter.FuncName, -1)
-	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$success$", "Test Passed", -1)
 
 	codePath := s.generateUserCodePath(userAuthID, chapter.ChapterID, defaultFileName)
 
@@ -77,85 +75,143 @@ func (s *runnerService) CreateDirectories(userAuthID string) error {
 	return nil
 }
 
-func (s *runnerService) BuildCode(build, userAuthID, ChapterID, defaultFileName string) error {
-	fmt.Println("Building Code")
-
+func (s *runnerService) BuildCode(build, userAuthID, chapterID, defaultFileName string) error {
 	binaryPath := s.generateUserBinaryPath(userAuthID)
-	userCodePath := s.generateUserCodePath(userAuthID, ChapterID, defaultFileName)
+	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
 	buildCode := fmt.Sprintf(build, binaryPath, userCodePath)
 
 	cmd := exec.Command("sh", "-c", buildCode)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return domains.NewCodeResponse(string(output), err, false)
+		return domains.NewCodeResponse(string(output), "", "", err, false, nil)
 	}
 
-	return domains.NewCodeResponse("", nil, true)
+	return domains.NewCodeResponse("", "", "", nil, true, nil)
 }
 
-func (s *runnerService) RunCode(name string, tests []dto.QuestTest) {
-	// fmt.Println("RunCode Runned")
-}
+func (s *runnerService) RunCode(userAuthID, chapterID, defaultFileName, run string, tests []dto.QuestTest) error {
+	// If there is "" in numbers thats a string.
+	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
 
-func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string {
-	var checks strings.Builder
-
+	var correctTestsID []string // Doğru olan testlerin 3 de 1 ini döndüreceğim.
+	var lastOutput string
 	for i, test := range tests {
-		tmp := check
-		tmp = strings.Replace(tmp, "$rnd$", fmt.Sprintf("%v", i), -1)
+		testOutput := s.createTestOutput(test)
+		runCode := s.createRunWithTest(run, userAuthID, chapterID, defaultFileName, test)
 
-		// Split input and output by "|"
-		inputs := strings.Split(test.Input, "|")
-		outputs := strings.Split(test.Output, "|")
-
-		var inputValues []string
-		for _, in := range inputs {
-			in = strings.TrimSpace(in)
-			// Identify type of input element
-			if typechecker.IsString(in) {
-				inputValues = append(inputValues, in) // Already string so we can append it normaly
-			} else if typechecker.IsBool(in) {
-				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseBool(in)))
-			} else if typechecker.IsNumber(in) {
-				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseNumber(in)))
-			} else {
-				inputValues = append(inputValues, fmt.Sprintf("%v", in))
-			}
-		}
-		tmp = strings.Replace(tmp, "$input$", strings.Join(inputValues, ", "), -1)
-
-		// Handle output replacement
-		var outputValues []string
-		var fails []string
-		for _, out := range outputs {
-			out = strings.TrimSpace(out)
-			// Identify type of output element
-			if typechecker.IsString(out) {
-				outputValues = append(outputValues, out)
-				fails = append(fails, fmt.Sprintf("%v", out))
-			} else if typechecker.IsBool(out) {
-				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseBool(out)))
-				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseBool(out)))
-			} else if typechecker.IsNumber(out) {
-				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
-				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
-			} else {
-				outputValues = append(outputValues, fmt.Sprintf("%v", out))
-				fails = append(fails, fmt.Sprintf("%v", out))
-			}
-		}
-		tmp = strings.Replace(tmp, "$output$", strings.Join(outputValues, ", "), -1)
-
-		// Handle $out$ if exists
-		if strings.Contains(check, "$out$") {
-			tmp = strings.Replace(tmp, "$out$", strings.Join(fails, ", "), -1)
+		cmd := exec.Command("sh", "-c", runCode)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return domains.NewCodeResponse(string(output), "", "", err, false, nil)
 		}
 
-		checks.WriteString(tmp + "\n")
+		if int(len(tests)/3) > i {
+			correctTestsID = append(correctTestsID, test.TestID)
+		}
+
+		if testOutput != string(output) {
+			return domains.NewCodeResponse("", string(output), test.TestID, nil, false, correctTestsID)
+		}
+
+		lastOutput = string(output)
 	}
 
-	return checks.String()
+	if len(tests) == 0 {
+		runCode := fmt.Sprintf(run, userCodePath, "")
+		cmd := exec.Command("sh", "-c", runCode)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return domains.NewCodeResponse(string(output), "", "", err, false, nil)
+		}
+		lastOutput = string(output)
+	}
+
+	return domains.NewCodeResponse("", lastOutput, "", nil, true, correctTestsID)
 }
+
+func (s *runnerService) createRunWithTest(run, userAuthID, chapterID, defaultFileName string, test dto.QuestTest) string {
+	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
+
+	var inputs string
+	argsArr := strings.Split(strings.ReplaceAll(test.Input, "|", ""), " ")
+	for _, str := range argsArr {
+		inputs += str + " "
+	}
+	runCode := fmt.Sprintf(run, userCodePath, strings.TrimSpace(inputs))
+
+	return runCode
+}
+
+func (s *runnerService) createTestOutput(test dto.QuestTest) string {
+	var output string
+	argsArr := strings.Split(strings.ReplaceAll(test.Output, "|", ""), " ")
+	for _, str := range argsArr {
+		output += str + " "
+	}
+	output = strings.TrimSpace(output)
+
+	return output
+}
+
+// func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string {
+// 	var checks strings.Builder
+
+// 	for i, test := range tests {
+// 		tmp := check
+// 		tmp = strings.Replace(tmp, "$rnd$", fmt.Sprintf("%v", i), -1)
+
+// 		// Split input and output by "|"
+// 		inputs := strings.Split(test.Input, "|")
+// 		outputs := strings.Split(test.Output, "|")
+
+// 		var inputValues []string
+// 		for _, in := range inputs {
+// 			in = strings.TrimSpace(in)
+// 			// Identify type of input element
+// 			if typechecker.IsString(in) {
+// 				inputValues = append(inputValues, in) // Already string so we can append it normaly
+// 			} else if typechecker.IsBool(in) {
+// 				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseBool(in)))
+// 			} else if typechecker.IsNumber(in) {
+// 				inputValues = append(inputValues, fmt.Sprintf("%v", typechecker.ParseNumber(in)))
+// 			} else {
+// 				inputValues = append(inputValues, fmt.Sprintf("%v", in))
+// 			}
+// 		}
+// 		tmp = strings.Replace(tmp, "$input$", strings.Join(inputValues, ", "), -1)
+
+// 		// Handle output replacement
+// 		var outputValues []string
+// 		var fails []string
+// 		for _, out := range outputs {
+// 			out = strings.TrimSpace(out)
+// 			// Identify type of output element
+// 			if typechecker.IsString(out) {
+// 				outputValues = append(outputValues, out)
+// 				fails = append(fails, fmt.Sprintf("%v", out))
+// 			} else if typechecker.IsBool(out) {
+// 				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseBool(out)))
+// 				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseBool(out)))
+// 			} else if typechecker.IsNumber(out) {
+// 				outputValues = append(outputValues, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
+// 				fails = append(fails, fmt.Sprintf("%v", typechecker.ParseNumber(out)))
+// 			} else {
+// 				outputValues = append(outputValues, fmt.Sprintf("%v", out))
+// 				fails = append(fails, fmt.Sprintf("%v", out))
+// 			}
+// 		}
+// 		tmp = strings.Replace(tmp, "$output$", strings.Join(outputValues, ", "), -1)
+
+// 		// Handle $out$ if exists
+// 		if strings.Contains(check, "$out$") {
+// 			tmp = strings.Replace(tmp, "$out$", strings.Join(fails, ", "), -1)
+// 		}
+
+// 		checks.WriteString(tmp + "\n")
+// 	}
+
+// 	return checks.String()
+// }
 
 func (s *runnerService) generateUserCodePath(userID, chapterID, defaultName string) string {
 	extention := strings.Split(defaultName, ".")[1]

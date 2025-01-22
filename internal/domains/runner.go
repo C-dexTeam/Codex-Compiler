@@ -11,16 +11,22 @@ type Language struct {
 }
 
 type CodeResponse struct {
-	Correct    bool
-	BuildError string
-	Err        error
+	Correct        bool
+	Output         string
+	BuildError     string
+	Err            error
+	CorrectTestsID []string
+	WrongTestID    string
 }
 
-func NewCodeResponse(buildError string, err error, correct bool) error {
+func NewCodeResponse(buildError, output, wrongTestID string, err error, correct bool, correctTestsID []string) error {
 	return &CodeResponse{
-		Correct:    correct,
-		BuildError: buildError,
-		Err:        err,
+		WrongTestID:    wrongTestID,
+		CorrectTestsID: correctTestsID,
+		Correct:        correct,
+		BuildError:     buildError,
+		Output:         output,
+		Err:            err,
 	}
 }
 
@@ -45,7 +51,7 @@ func Languages() []Language {
 	return []Language{
 		newLanguage(
 			"Go",
-			"go run main.go",     // Go derlemeden çalıştırma
+			"go run %v %v",       // Go derlemeden çalıştırma
 			"go build -o %v %v ", // Go derleme komutu
 			"main.go",            // Varsayılan dosya adı
 		),
