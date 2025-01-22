@@ -3,8 +3,10 @@ package services
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
+	"github.com/C-dexTeam/codex-compiler/internal/domains"
 	serviceErrors "github.com/C-dexTeam/codex-compiler/internal/errors"
 	dto "github.com/C-dexTeam/codex-compiler/internal/http/dtos"
 	"github.com/C-dexTeam/codex-compiler/pkg/file"
@@ -28,7 +30,6 @@ func NewRunnerService(utilService IUtilService) *runnerService {
 }
 
 func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter dto.QuestChapter, tests []dto.QuestTest) error {
-	fmt.Println("CreateFiles Runned")
 	checks := s.createChecks(chapter.CheckTmp, tests)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$res$", fmt.Sprint(len(tests)-1), -1)
@@ -76,14 +77,24 @@ func (s *runnerService) CreateDirectories(userAuthID string) error {
 	return nil
 }
 
-func (s *runnerService) BuildCode(build string) {
+func (s *runnerService) BuildCode(build, userAuthID, ChapterID, defaultFileName string) error {
 	fmt.Println("Building Code")
 
-	fmt.Println(build)
+	binaryPath := s.generateUserBinaryPath(userAuthID, ChapterID)
+	userCodePath := s.generateUserCodePath(userAuthID, ChapterID, defaultFileName)
+	buildCode := fmt.Sprintf(build, binaryPath, userCodePath)
+
+	cmd := exec.Command("sh", "-c", buildCode)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return domains.NewCodeResponse(string(output), err, false)
+	}
+
+	return domains.NewCodeResponse("", nil, true)
 }
 
 func (s *runnerService) RunCode(name string, tests []dto.QuestTest) {
-	fmt.Println("RunCode Runned")
+	// fmt.Println("RunCode Runned")
 }
 
 func (s *runnerService) createChecks(check string, tests []dto.QuestTest) string {
@@ -155,11 +166,8 @@ func (s *runnerService) generateUserCodePath(userID, chapterID, defaultName stri
 	return userDir + "/" + fileName
 }
 
-func (s *runnerService) generateUserBinaryPath(userID, chapterID, defaultName string) string {
-	extention := strings.Split(defaultName, ".")[1]
-
+func (s *runnerService) generateUserBinaryPath(userID, chapterID string) string {
 	userDir := s.binaryDir + "/" + userID
-	fileName := fmt.Sprintf("%v.%v", chapterID, extention)
 
-	return userDir + "/" + fileName
+	return userDir
 }
