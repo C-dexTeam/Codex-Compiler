@@ -52,6 +52,5 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	// Run Code
 	codeLog := h.services.RunnerService().RunCode(userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName, lang.Run, quest.Tests)
 
-	// fmt.Println("Compiler Quest:", quest)
 	return response.Response(200, "Code Runnded", codeLog)
 }
