@@ -13,14 +13,6 @@ func (h *PrivateHandler) initUserRoutes(root fiber.Router) {
 	root.Post("/run", h.Run)
 }
 
-// @Tags Run
-// @Summary Runs codes.
-// @Description Runs user codes.
-// @Accept json
-// @Produce json
-// @Param quest body dto.QuestDTO true "Chapter Quest"
-// @Success 200 {object} response.BaseResponse{}
-// @Router /private/run [post]
 func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	userSession := sessionStore.GetSessionData(c)
 	var quest dto.QuestDTO
@@ -32,6 +24,10 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	}
 
 	lang := domains.GetLanguage(quest.ProgrammingLanguageDTO.Name)
+
+	if lang == nil {
+		return response.Response(404, "There is no such Programming Language", nil)
+	}
 
 	// Create Necessary Directories. Like UserCode etc.
 	if err := h.services.RunnerService().CreateDirectories(userSession.UserID); err != nil {
