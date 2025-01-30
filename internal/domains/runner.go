@@ -19,8 +19,8 @@ type CodeResponse struct {
 	WrongTestID    string
 }
 
-func NewCodeResponse(buildError, output, wrongTestID string, err error, correct bool, correctTestsID []string) error {
-	return &CodeResponse{
+func NewCodeResponse(buildError, output, wrongTestID string, err error, correct bool, correctTestsID []string) CodeResponse {
+	return CodeResponse{
 		WrongTestID:    wrongTestID,
 		CorrectTestsID: correctTestsID,
 		Correct:        correct,
@@ -28,13 +28,6 @@ func NewCodeResponse(buildError, output, wrongTestID string, err error, correct 
 		Output:         output,
 		Err:            err,
 	}
-}
-
-func (e *CodeResponse) Error() string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-	return ""
 }
 
 func newLanguage(name, run, build, defaultName string) Language {

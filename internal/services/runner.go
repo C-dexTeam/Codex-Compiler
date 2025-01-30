@@ -75,7 +75,7 @@ func (s *runnerService) CreateDirectories(userAuthID string) error {
 	return nil
 }
 
-func (s *runnerService) BuildCode(build, userAuthID, chapterID, defaultFileName string) error {
+func (s *runnerService) BuildCode(build, userAuthID, chapterID, defaultFileName string) domains.CodeResponse {
 	binaryPath := s.generateUserBinaryPath(userAuthID)
 	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
 	buildCode := fmt.Sprintf(build, binaryPath, userCodePath)
@@ -89,7 +89,7 @@ func (s *runnerService) BuildCode(build, userAuthID, chapterID, defaultFileName 
 	return domains.NewCodeResponse("", "", "", nil, true, nil)
 }
 
-func (s *runnerService) RunCode(userAuthID, chapterID, defaultFileName, run string, tests []dto.QuestTest) error {
+func (s *runnerService) RunCode(userAuthID, chapterID, defaultFileName, run string, tests []dto.QuestTest) domains.CodeResponse {
 	// If there is "" in numbers thats a string.
 	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
 
