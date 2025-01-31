@@ -39,10 +39,9 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 		return err
 	}
 
-	// TODO: Alltakilerde CodeResponse structu döndür.
 	// Build The Code for Syntax Errors
 	buildLog := h.services.RunnerService().BuildCode(lang.Build, userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName)
-	if buildLog.Error() != "" {
+	if buildLog.BuildError != "" {
 		return response.Response(400, serviceErrors.ErrCodeBuild, buildLog)
 	}
 

@@ -14,19 +14,26 @@ type CodeResponse struct {
 	Correct        bool
 	Output         string
 	BuildError     string
-	Err            error
+	Err            string
 	CorrectTestsID []string
 	WrongTestID    string
 }
 
 func NewCodeResponse(buildError, output, wrongTestID string, err error, correct bool, correctTestsID []string) CodeResponse {
+	var errStr string
+	if err != nil {
+		errStr = err.Error()
+	} else {
+		errStr = ""
+	}
+
 	return CodeResponse{
 		WrongTestID:    wrongTestID,
 		CorrectTestsID: correctTestsID,
 		Correct:        correct,
 		BuildError:     buildError,
 		Output:         output,
-		Err:            err,
+		Err:            errStr,
 	}
 }
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -93,9 +94,12 @@ func (s *runnerService) RunCode(userAuthID, chapterID, defaultFileName, run stri
 	// If there is "" in numbers thats a string.
 	userCodePath := s.generateUserCodePath(userAuthID, chapterID, defaultFileName)
 
+	testCount := int(math.Ceil(float64(len(tests)) * 0.30))
 	var correctTestsID []string // Doğru olan testlerin 3 de 1 ini döndüreceğim.
 	var lastOutput string
 	for i, test := range tests {
+		fmt.Println(test, i)
+
 		testOutput := s.createTestOutput(test)
 		runCode := s.createRunWithTest(run, userAuthID, chapterID, defaultFileName, test)
 
@@ -104,13 +108,14 @@ func (s *runnerService) RunCode(userAuthID, chapterID, defaultFileName, run stri
 		if err != nil {
 			return domains.NewCodeResponse(string(output), "", "", err, false, nil)
 		}
+		cleanOutput := strings.TrimSpace(string(output))
 
-		if int(len(tests)/3) > i {
+		if testCount > i {
 			correctTestsID = append(correctTestsID, test.TestID)
 		}
 
-		if testOutput != string(output) {
-			return domains.NewCodeResponse("", string(output), test.TestID, nil, false, correctTestsID)
+		if testOutput != cleanOutput {
+			return domains.NewCodeResponse("", cleanOutput, test.TestID, nil, false, correctTestsID)
 		}
 
 		lastOutput = string(output)
