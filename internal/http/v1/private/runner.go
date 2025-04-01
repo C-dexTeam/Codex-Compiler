@@ -11,6 +11,7 @@ import (
 
 func (h *PrivateHandler) initUserRoutes(root fiber.Router) {
 	root.Post("/run", h.Run)
+	root.Get("/getPLanguages", h.GetCompileLangs)
 }
 
 func (h *PrivateHandler) Run(c *fiber.Ctx) error {
@@ -49,4 +50,10 @@ func (h *PrivateHandler) Run(c *fiber.Ctx) error {
 	codeLog := h.services.RunnerService().RunCode(userSession.UserID, quest.Chapter.ChapterID, lang.DefaultName, lang.Run, quest.Tests)
 
 	return response.Response(200, "Code Runnded", codeLog)
+}
+
+func (h *PrivateHandler) GetCompileLangs(c *fiber.Ctx) error {
+	langNames := domains.GetLanguagesName()
+
+	return response.Response(200, "Languages", langNames)
 }
