@@ -30,9 +30,6 @@ func NewRunnerService(utilService IUtilService) *runnerService {
 }
 
 func (s *runnerService) CreateFiles(userAuthID, defaultFileName string, chapter dto.QuestChapter, tests []dto.QuestTest) error {
-	// For now we are checking the outputs of the code. Not need checks_template
-	// checks := s.createChecks(chapter.CheckTmp, tests)
-	// chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$checks$", checks, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$code$", chapter.UserCode, -1)
 	chapter.DockerTmp = strings.Replace(chapter.DockerTmp, "$funcname$", chapter.FuncName, -1)
 

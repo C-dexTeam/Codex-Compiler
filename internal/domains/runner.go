@@ -75,3 +75,13 @@ func GetLanguage(name string) *Language {
 
 	return nil
 }
+
+func GetLanguagesName() []string {
+	var names []string
+	langs := Languages()
+	for _, lang := range langs {
+		names = append(names, lang.Name)
+	}
+
+	return names
+}
